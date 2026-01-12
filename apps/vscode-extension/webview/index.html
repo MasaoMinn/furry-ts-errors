@@ -8,7 +8,7 @@
     <meta
         http-equiv="Content-Security-Policy"
         data-csp-replace-content
-        content="default-src 'none'; script-src http://localhost:8080; style-src http://localhost:8080; font-src http://localhost:8080;"
+        content="default-src 'none'; script-src http://localhost:8080; style-src http://localhost:8080; font-src http://localhost:8080; img-src http://localhost:8080;"
     />
     <title>Pretty TS Errors - Markdown Preview</title>
     <!-- TODO: add script to copy vendor/codicon files from node_modules/ to ./vendor-->
@@ -18,6 +18,9 @@
 <body>
     <!-- #content will be filled with the markdown rendered content -->
     <div id="content"></div>
+    <div id="furry-error"></div>
+    <script src="./messageClassifier.js" data-src-as-webview-uri></script>
     <script src="./index.js" data-src-as-webview-uri></script>
+    <script src="./furryError.js" data-src-as-webview-uri></script>
 </body>
 </html>

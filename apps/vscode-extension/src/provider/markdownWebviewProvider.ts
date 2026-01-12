@@ -146,7 +146,7 @@ export class MarkdownWebviewProvider {
   }
 
   createOnDidReceiveMessage() {
-    return (message: { command: string; [key: string]: unknown }) => {
+    return (message: { command: string;[key: string]: unknown }) => {
       if (message && message.command) {
         switch (message.command) {
           case "notify": {
@@ -178,9 +178,22 @@ export class MarkdownWebviewProvider {
 
   async updateWebviewContent(webview: vscode.Webview, content: string) {
     const html = await this.renderMarkdown(content);
+    // Get the webview URIs for all images
+    const confusedImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'confused.png');
+    const hookImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'hook.png');
+    const domImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'dom.png');
+
+    const confusedImageUri = webview.asWebviewUri(confusedImagePath);
+    const hookImageUri = webview.asWebviewUri(hookImagePath);
+    const domImageUri = webview.asWebviewUri(domImagePath);
+
     webview.postMessage({
       command: "update-content",
       html,
+      content, // Pass original content for classification
+      confusedImageUri: confusedImageUri.toString(),
+      hookImageUri: hookImageUri.toString(),
+      domImageUri: domImageUri.toString()
     });
   }
 
@@ -226,6 +239,10 @@ export class MarkdownWebviewProvider {
             .replaceAll(
               "font-src http://localhost:8080",
               `font-src ${webview.cspSource}`
+            )
+            .replaceAll(
+              "img-src http://localhost:8080",
+              `img-src ${webview.cspSource}`
             )
         );
       }
