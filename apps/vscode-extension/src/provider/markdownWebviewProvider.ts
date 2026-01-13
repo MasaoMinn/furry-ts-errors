@@ -182,10 +182,12 @@ export class MarkdownWebviewProvider {
     const confusedImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'confused.png');
     const hookImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'hook.png');
     const domImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'dom.png');
+    const notFoundWinkImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'not_found_wink.png');
 
     const confusedImageUri = webview.asWebviewUri(confusedImagePath);
     const hookImageUri = webview.asWebviewUri(hookImagePath);
     const domImageUri = webview.asWebviewUri(domImagePath);
+    const notFoundWinkImageUri = webview.asWebviewUri(notFoundWinkImagePath);
 
     webview.postMessage({
       command: "update-content",
@@ -193,7 +195,8 @@ export class MarkdownWebviewProvider {
       content, // Pass original content for classification
       confusedImageUri: confusedImageUri.toString(),
       hookImageUri: hookImageUri.toString(),
-      domImageUri: domImageUri.toString()
+      domImageUri: domImageUri.toString(),
+      notFoundWinkImageUri: notFoundWinkImageUri.toString()
     });
   }
 

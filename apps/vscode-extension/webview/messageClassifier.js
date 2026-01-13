@@ -15,10 +15,9 @@ function classifyMessage(message) {
   }
 
   if (
-    text.includes('objects are not valid as a react child') ||
+    text.includes('react child') ||
     text.includes('cannot read properties of undefined') ||
     text.includes('cannot read property') ||
-    text.includes('react child') ||
     text.includes('each child in a list should have a unique "key"') ||
     text.includes('hydrate') ||
     text.includes('hydration') ||
@@ -32,6 +31,17 @@ function classifyMessage(message) {
     text.includes('doms')
   ) {
     return '/images/dom.png';
+  }
+
+  if (
+    text.includes('found') ||
+    text.includes('find') ||
+    text.includes('varient') ||
+    text.includes('import') || 
+    text.includes('module') ||
+    text.includes('export')
+  ) {
+    return '/images/not_found_wink.png';
   }
 
   return '/images/confused.png';

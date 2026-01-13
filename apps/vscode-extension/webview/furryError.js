@@ -51,6 +51,8 @@
               imageUri = message.hookImageUri || './images/hook.png';
             } else if (imagePath === '/images/dom.png') {
               imageUri = message.domImageUri || './images/dom.png';
+            } else if (imagePath === '/images/not_found_wink.png') {
+              imageUri = message.notFoundWinkImageUri || './images/not_found_wink.png';
             } else {
               imageUri = message.confusedImageUri || './images/confused.png';
             }
