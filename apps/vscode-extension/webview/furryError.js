@@ -44,7 +44,9 @@
           if ($furryError) {
             // Get the image path based on message classification
             const imagePath = window.classifyMessage(message.content);
-            let imageUri;
+            const additionalPath = window.additionalClassifier(message.content);
+            let imageUri='';
+            let additionalUri;
             
             // Select the appropriate image URI based on the classified path
             if (imagePath === '/images/hook.png') {
@@ -57,10 +59,19 @@
               imageUri = message.confusedImageUri || './images/confused.png';
             }
             
-            // Set the innerHTML with the appropriate image
+            // Select the appropriate additional image URI based on the classified path
+            if (additionalPath) {
+              if (additionalPath === '/images/onVue.png') {
+                additionalUri = message.onVueImageUri || './images/onVue.png';
+              } else {
+                additionalUri = additionalPath;
+              }
+            }
+            
             $furryError.innerHTML = `<img src="${imageUri}" alt="Furry error" />`;
-          } else {
-            console.error('Could not find #furry-error element');
+            if(additionalUri) {
+              $furryError.innerHTML += `<img src="${additionalUri}" alt="Furry error 1" />`;
+            }
           }
           break;
         }

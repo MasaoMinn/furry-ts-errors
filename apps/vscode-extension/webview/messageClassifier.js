@@ -49,3 +49,61 @@ function classifyMessage(message) {
 
 // Add to global window object for use in furryError.js
 window.classifyMessage = classifyMessage;
+
+/**
+ * 精准识别 Vue 相关报错，返回对应图片路径
+ * @param {string} message - VSCode 捕获的报错信息文本
+ * @returns {string|null} - 匹配到则返回图片路径，否则返回 null
+ */
+function additionalClassifier(message) {
+  const text = message.toLowerCase();
+
+  // 1. 核心 Vue 关键词（基础匹配）
+  const hasVueCoreKeyword = text.includes('vue') || text.includes('v-bind') || text.includes('v-model') || text.includes('v-for');
+  
+  // 2. Vue 特有报错特征（精准匹配，覆盖 Vue 2/3 高频报错）
+  const vueErrorPatterns = [
+    // Vue 3 组合式 API 错误
+    /setup script/,
+    /composition api/,
+    /ref\(\)/,
+    /reactive\(\)/,
+    /computed\(\)/,
+    /watch\(/,
+    /use.*hook/, // 自定义 hook 相关
+    /defineprops/,
+    /defineemits/,
+    /defineexpose/,
+    // Vue 通用语法错误
+    /component template/,
+    /vue component/,
+    /vue directive/,
+    /vue router/,
+    /vuex/,
+    /pinia/, // Vue 3 状态管理
+    /vue warn/,
+    /vue error/,
+    // Vue 编译/运行时错误
+    /vue compiler/,
+    /vue runtime/,
+    /hydration mismatch/, // Vue 服务端渲染水合错误
+    /invalid v-for/,
+    /invalid v-bind/,
+    /invalid v-model/,
+    /duplicate key/, // v-for 重复 key
+    /props validation/, // props 验证错误
+    /emits validation/, // emits 验证错误
+    // Vue 生态错误
+    /vue-loader/,
+    /vue-cli/,
+    /vite-plugin-vue/
+  ];
+  const hasVueSpecificError = vueErrorPatterns.some(pattern => pattern.test(text));
+  
+  if (hasVueCoreKeyword || hasVueSpecificError) {
+    return '/images/onVue.png';
+  }
+
+  return null;
+}
+window.additionalClassifier = additionalClassifier;
