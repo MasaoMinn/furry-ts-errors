@@ -1,7 +1,9 @@
 // Convert to a global function for use in webview
 function classifyMessage(message) {
   const text = message.toLowerCase();
-
+  if (text.includes('prettified diagnostic')) {
+    return '/images/react-furry-moji.png'
+  }
   if (
     text.includes('hook') ||
     text.includes('hooks') ||
@@ -57,51 +59,61 @@ window.classifyMessage = classifyMessage;
  */
 function additionalClassifier(message) {
   const text = message.toLowerCase();
-
-  // 1. 核心 Vue 关键词（基础匹配）
   const hasVueCoreKeyword = text.includes('vue') || text.includes('v-bind') || text.includes('v-model') || text.includes('v-for');
-  
-  // 2. Vue 特有报错特征（精准匹配，覆盖 Vue 2/3 高频报错）
   const vueErrorPatterns = [
-    // Vue 3 组合式 API 错误
     /setup script/,
     /composition api/,
     /ref\(\)/,
     /reactive\(\)/,
     /computed\(\)/,
     /watch\(/,
-    /use.*hook/, // 自定义 hook 相关
+    /use.*hook/,
     /defineprops/,
     /defineemits/,
     /defineexpose/,
-    // Vue 通用语法错误
     /component template/,
     /vue component/,
     /vue directive/,
     /vue router/,
     /vuex/,
-    /pinia/, // Vue 3 状态管理
+    /pinia/,
     /vue warn/,
     /vue error/,
-    // Vue 编译/运行时错误
     /vue compiler/,
     /vue runtime/,
-    /hydration mismatch/, // Vue 服务端渲染水合错误
+    /hydration mismatch/,
     /invalid v-for/,
     /invalid v-bind/,
     /invalid v-model/,
-    /duplicate key/, // v-for 重复 key
-    /props validation/, // props 验证错误
-    /emits validation/, // emits 验证错误
-    // Vue 生态错误
+    /props validation/,
+    /emits validation/,
     /vue-loader/,
     /vue-cli/,
     /vite-plugin-vue/
   ];
   const hasVueSpecificError = vueErrorPatterns.some(pattern => pattern.test(text));
-  
   if (hasVueCoreKeyword || hasVueSpecificError) {
     return '/images/onVue.png';
+  }
+  if (
+    text.includes('type') ||
+    text.includes('typeerror') ||
+    text.includes('is not a function') ||
+    text.includes('is not an object') ||
+    text.includes('is not a constructor') ||
+    text.includes('is not iterable') ||
+    text.includes('is not a string') ||
+    text.includes('is not a number') ||
+    text.includes('is not a boolean') ||
+    text.includes('is not an array') ||
+    text.includes('is not a bigint') ||
+    text.includes('is not a symbol') ||
+    text.includes('cannot convert') ||
+    text.includes('read properties') ||
+    text.includes('instanceof') ||
+    text.includes('prototype') 
+  ) {
+    return '/images/type.png';
   }
 
   return null;

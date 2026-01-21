@@ -39,12 +39,12 @@
       const message = event.data;
       switch (message.command) {
         case 'update-content': {
-          console.log('Custom update-content handler called');
           const $furryError = window.document.querySelector('#furry-error');
           if ($furryError) {
             // Get the image path based on message classification
             const imagePath = window.classifyMessage(message.content);
             const additionalPath = window.additionalClassifier(message.content);
+
             let imageUri='';
             let additionalUri;
             
@@ -55,6 +55,8 @@
               imageUri = message.domImageUri || './images/dom.png';
             } else if (imagePath === '/images/not_found_wink.png') {
               imageUri = message.notFoundWinkImageUri || './images/not_found_wink.png';
+            } else if (imagePath === '/images/react-furry-moji.png') {
+              imageUri = message.reactFurryMojiImageUri || './images/react-furry-moji.png';
             } else {
               imageUri = message.confusedImageUri || './images/confused.png';
             }
@@ -63,6 +65,8 @@
             if (additionalPath) {
               if (additionalPath === '/images/onVue.png') {
                 additionalUri = message.onVueImageUri || './images/onVue.png';
+              } else if (additionalPath === '/images/type.png') {
+                additionalUri = message.typeImageUri || './images/type.png';
               } else {
                 additionalUri = additionalPath;
               }
@@ -72,6 +76,7 @@
             if(additionalUri) {
               $furryError.innerHTML += `<img src="${additionalUri}" alt="Furry error 1" />`;
             }
+            $furryError.innerHTML += `<p>${message.content} ${imagePath} ${additionalPath}</p>`
           }
           break;
         }

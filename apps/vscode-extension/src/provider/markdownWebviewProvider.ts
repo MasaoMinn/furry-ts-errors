@@ -184,12 +184,16 @@ export class MarkdownWebviewProvider {
     const domImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'dom.png');
     const notFoundWinkImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'not_found_wink.png');
     const onVueImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'onVue.png');
+    const reactFurryMojiImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'react-furry-moji.png');
+    const typeImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'type.png');
 
     const confusedImageUri = webview.asWebviewUri(confusedImagePath);
     const hookImageUri = webview.asWebviewUri(hookImagePath);
     const domImageUri = webview.asWebviewUri(domImagePath);
     const notFoundWinkImageUri = webview.asWebviewUri(notFoundWinkImagePath);
     const onVueImageUri = webview.asWebviewUri(onVueImagePath);
+    const reactFurryMojiImageUri = webview.asWebviewUri(reactFurryMojiImagePath);
+    const typeImageUri = webview.asWebviewUri(typeImagePath);
 
     webview.postMessage({
       command: "update-content",
@@ -199,7 +203,9 @@ export class MarkdownWebviewProvider {
       hookImageUri: hookImageUri.toString(),
       domImageUri: domImageUri.toString(),
       notFoundWinkImageUri: notFoundWinkImageUri.toString(),
-      onVueImageUri: onVueImageUri.toString()
+      onVueImageUri: onVueImageUri.toString(),
+      reactFurryMojiImageUri: reactFurryMojiImageUri.toString(),
+      typeImageUri: typeImageUri.toString()
     });
   }
 
