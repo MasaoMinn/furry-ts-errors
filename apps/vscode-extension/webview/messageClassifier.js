@@ -59,8 +59,8 @@ window.classifyMessage = classifyMessage;
  */
 function additionalClassifier(message) {
   const text = message.toLowerCase();
-  const hasVueCoreKeyword = text.includes('vue') || text.includes('v-bind') || text.includes('v-model') || text.includes('v-for');
   const vueErrorPatterns = [
+    /vue/, // 核心：匹配任意位置的vue（如vue、vue-router、avue都能匹配）
     /setup script/,
     /composition api/,
     /ref\(\)/,
@@ -72,42 +72,16 @@ function additionalClassifier(message) {
     /defineemits/,
     /defineexpose/,
     /component template/,
-    /vue component/,
-    /vue directive/,
-    /vue router/,
-    /vuex/,
     /pinia/,
-    /vue warn/,
-    /vue error/,
-    /vue compiler/,
-    /vue runtime/,
-    /hydration mismatch/,
-    /invalid v-for/,
-    /invalid v-bind/,
-    /invalid v-model/,
-    /props validation/,
-    /emits validation/,
-    /vue-loader/,
-    /vue-cli/,
-    /vite-plugin-vue/
   ];
-  const hasVueSpecificError = vueErrorPatterns.some(pattern => pattern.test(text));
-  if (hasVueCoreKeyword || hasVueSpecificError) {
+  if (vueErrorPatterns.some(pattern => pattern.test(text))) {
     return '/images/onVue.png';
   }
+  
   if (
-    text.includes('type') ||
+    text.includes('assignable') ||
     text.includes('typeerror') ||
-    text.includes('is not a function') ||
-    text.includes('is not an object') ||
-    text.includes('is not a constructor') ||
-    text.includes('is not iterable') ||
-    text.includes('is not a string') ||
-    text.includes('is not a number') ||
-    text.includes('is not a boolean') ||
-    text.includes('is not an array') ||
-    text.includes('is not a bigint') ||
-    text.includes('is not a symbol') ||
+    text.includes('is not') ||
     text.includes('cannot convert') ||
     text.includes('read properties') ||
     text.includes('instanceof') ||
