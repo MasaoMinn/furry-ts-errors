@@ -3,7 +3,7 @@
   "displayName": "Furry TypeScript Errors",
   "publisher": "tangetsu",
   "description": "Make TypeScript errors prettier and more human-readable in VSCode",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
