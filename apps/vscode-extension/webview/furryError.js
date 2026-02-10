@@ -76,7 +76,6 @@
             if(additionalUri) {
               $furryError.innerHTML += `<img src="${additionalUri}" alt="Furry error 1" />`;
             }
-            $furryError.innerHTML += `<p>${message.content}</p>`
           }
           break;
         }
