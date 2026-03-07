@@ -71,3 +71,7 @@ pre code {
 .hide-new-tab-button a[title="Open in new tab"], .hide-new-tab-button a[title="Open in new tab"] + span.divider {
     display: none;
 }
+
+/* #furry-image {
+
+} */

@@ -1,6 +1,12 @@
 # furry-ts-errors
 
-VSCode Extension Based on [yoavbls/pretty-ts-errors](https://github.com/yoavbls/pretty-ts-errors "yoavbls/pretty-ts-errors")
+Showing different furry illusions according to the error type, bringing more fun to the programming.
+
+![furry-ts-errors](icon.png)
+
+Github Repository: [furry-ts-errors](https://github.com/masaominn/furry-ts-errors "furry-ts-errors")
+
+VSCode Extension forked from [yoavbls/pretty-ts-errors](https://github.com/yoavbls/pretty-ts-errors "yoavbls/pretty-ts-errors")
 
 See details: [react-furry-error](https://masaominn.github.io/react-furry-error "react-furry-error")
 

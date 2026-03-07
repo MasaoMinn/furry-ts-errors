@@ -2,9 +2,9 @@
   "name": "furry-ts-errors",
   "displayName": "Furry TypeScript Errors",
   "publisher": "tangetsu",
-  "description": "Make TypeScript errors prettier and more human-readable in VSCode",
+  "description": "Make TypeScript errors prettier and more human-readable in VSCode, with furry illustrations to brighten up your coding experience.",
   "version": "0.1.3",
-  "icon": "assets/icon.png",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/MasaoMinn/furry-ts-errors",
@@ -54,7 +54,7 @@
         {
           "id": "prettyTsErrors.markdownPreview",
           "icon": "$(open-preview)",
-          "name": "Pretty TypeScript Error",
+          "name": "Furry TypeScript Error",
           "type": "webview",
           "visibility": "collapsed"
         }
@@ -64,13 +64,13 @@
       {
         "command": "prettyTsErrors.openMarkdownPreview",
         "title": "Open the diagnostic in a new tab",
-        "category": "Pretty TS Errors",
+        "category": "Furry TS Errors",
         "enablement": "!isCommandPanel"
       },
       {
         "command": "prettyTsErrors.revealSelection",
         "title": "Reveal the given selection",
-        "category": "Pretty TS Errors",
+        "category": "Furry TS Errors",
         "enablement": "!isCommandPanel"
       }
     ],
