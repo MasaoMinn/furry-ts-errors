@@ -24,5 +24,8 @@
   "workspaces": [
     "packages/*",
     "apps/*"
+  ],
+  "files": [
+    "apps/vscode-extension/**/*"
   ]
 }
