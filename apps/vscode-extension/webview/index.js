@@ -23,6 +23,10 @@ const api = (function () {
     notify(text) {
       vscode.postMessage({ command: "notify", text });
     },
+    /** Tell the extension the webview script is listening so `postMessage` updates are not dropped. */
+    signalReady() {
+      vscode.postMessage({ command: "webview-ready" });
+    },
   };
 })();
 
@@ -38,6 +42,16 @@ window.addEventListener("message", (event) => {
     }
   }
 });
+
+function scheduleWebviewReady() {
+  // Defer until after DOMContentLoaded so later scripts (e.g. furryError) can register `message` listeners first.
+  queueMicrotask(() => api.signalReady());
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", scheduleWebviewReady);
+} else {
+  scheduleWebviewReady();
+}
 
 window.document.addEventListener("click", (event) => {
   const element = /** @type {HTMLElement} */ (event.target);

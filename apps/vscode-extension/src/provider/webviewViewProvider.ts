@@ -36,25 +36,24 @@ export function registerWebviewViewProvider(context: ExtensionContext) {
 class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
   private disposables = new Map<vscode.WebviewView, vscode.Disposable[]>();
   private shownDiagnostics = new WeakMap<vscode.Webview, FormattedDiagnostic>();
-  constructor(private readonly provider: MarkdownWebviewProvider) {}
+  constructor(private readonly provider: MarkdownWebviewProvider) { }
 
   async resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext
   ): Promise<void> {
-    webviewView.webview.html = await this.provider.getWebviewContent(
-      webviewView.webview,
-      NO_DIAGNOSTICS_MESSAGE,
-      ["webview-panel"]
-    );
-
     const disposables = this.ensureDisposables(webviewView);
 
     webviewView.webview.options = this.provider.getWebviewOptions();
+
+    const onExtensionMessage = this.provider.createOnDidReceiveMessage();
     disposables.push(
-      webviewView.webview.onDidReceiveMessage(
-        this.provider.createOnDidReceiveMessage()
-      ),
+      webviewView.webview.onDidReceiveMessage((message) => {
+        if (message && message.command === "webview-ready") {
+          void this.onWebviewReady(webviewView.webview);
+        }
+        onExtensionMessage(message);
+      }),
       vscode.languages.onDidChangeDiagnostics(() =>
         // TODO: since `onDidChangeDiagnostics` fires often, we should try and avoid calling refresh based on the event uris
         this.refresh(webviewView.webview)
@@ -75,14 +74,24 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
       })
     );
 
+    webviewView.webview.html = await this.provider.getWebviewContent(
+      webviewView.webview,
+      NO_DIAGNOSTICS_MESSAGE,
+      ["webview-panel"]
+    );
+
     webviewView.onDidDispose(() => {
       const disposables = this.disposables.get(webviewView);
       disposables?.forEach((disposable) => disposable.dispose());
       this.disposables.delete(webviewView);
       this.shownDiagnostics.delete(webviewView.webview);
     });
+  }
 
-    this.refresh(webviewView.webview);
+  /** Runs after the webview has registered its `message` listener so `updateWebviewContent` is not lost. */
+  private async onWebviewReady(webview: vscode.Webview) {
+    await this.provider.updateWebviewContent(webview, NO_DIAGNOSTICS_MESSAGE);
+    await this.refresh(webview);
   }
 
   private ensureDisposables(webviewView: vscode.WebviewView) {
