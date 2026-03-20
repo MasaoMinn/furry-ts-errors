@@ -73,6 +73,12 @@
         "title": "Reveal the given selection",
         "category": "Furry TS Errors",
         "enablement": "!isCommandPanel"
+      },
+      {
+        "command": "prettyTsErrors.openConfiguration",
+        "title": "Configuration",
+        "category": "Furry TS Errors",
+        "enablement": "!isCommandPanel"
       }
     ],
     "languages": [

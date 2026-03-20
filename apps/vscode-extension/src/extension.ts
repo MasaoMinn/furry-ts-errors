@@ -4,6 +4,7 @@ import { logger } from "./logger";
 import { registerCopyError } from "./commands/copyError";
 import { registerRevealSelection } from "./commands/revealSelection";
 import { registerOpenMarkdownPreview } from "./commands/openMarkdownPreview";
+import { registerOpenConfiguration } from "./commands/openConfiguration";
 import { registerSelectedTextHoverProvider } from "./provider/selectedTextHoverProvider";
 import { registerTextDocumentProvider } from "./provider/textDocumentContentProvider";
 import { registerWebviewViewProvider } from "./provider/webviewViewProvider";
@@ -26,6 +27,7 @@ export function activate(context: ExtensionContext) {
   registerCopyError(context);
   registerOpenMarkdownPreview(context);
   registerRevealSelection(context);
+  registerOpenConfiguration(context);
 }
 
 export function deactivate() {
