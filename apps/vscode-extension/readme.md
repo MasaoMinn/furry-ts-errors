@@ -43,3 +43,18 @@ Install Extension: Search for `Furry TypeScript Errors` in extension market, or 
 ### vue error
 
 ![vue error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/vue.png)
+
+---
+
+Coming Soon:
+
+* Vue-furry fursona
+* Angular-furry fursona
+* Svelte-furry fursona
+* fursona interacts with the rocket turtle(Node.js), steamed bun(Bun), the dinosaur(Deno)
+* more memes
+* Support for customized images
+* Support for customized classification logic
+* Eslint errors capture
+
+If you have more creative ideas or want to support my development on the ideals above, create a pull request!
