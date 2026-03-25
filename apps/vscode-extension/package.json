@@ -50,6 +50,62 @@
     "icon.png"
   ],
   "contributes": {
+    "configuration": {
+      "title": "furry-ts-errors",
+      "properties": {
+        "furry-ts-errors.images": {
+          "type": "object",
+          "title": "Furry Error Images",
+          "description": "Customize image sources for error illustrations. Supports absolute paths and paths relative to the extension webview folder.",
+          "properties": {
+            "confused": {
+              "type": "string",
+              "description": "Default/fallback error image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "hook": {
+              "type": "string",
+              "description": "Hook related error image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "dom": {
+              "type": "string",
+              "description": "DOM related error image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "notFoundWink": {
+              "type": "string",
+              "description": "Import/module not found error image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "onVue": {
+              "type": "string",
+              "description": "Vue related additional image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "reactFurryMoji": {
+              "type": "string",
+              "description": "No error / prettified diagnostic image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            },
+            "type": {
+              "type": "string",
+              "description": "Type related additional image",
+              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
+            }
+          },
+          "default": {
+            "confused": "images/confused.png",
+            "hook": "images/hook.png",
+            "dom": "images/dom.png",
+            "notFoundWink": "images/not_found.png",
+            "onVue": "images/onVue.png",
+            "reactFurryMoji": "images/react-furry-moji.png",
+            "type": "images/type.png"
+          }
+        }
+      }
+    },
     "views": {
       "explorer": [
         {

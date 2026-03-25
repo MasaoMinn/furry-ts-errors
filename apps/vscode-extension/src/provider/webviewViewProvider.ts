@@ -58,6 +58,11 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
         // TODO: since `onDidChangeDiagnostics` fires often, we should try and avoid calling refresh based on the event uris
         this.refresh(webviewView.webview)
       ),
+      vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration("furry-ts-errors.images")) {
+          void this.refreshImagesForCurrentState(webviewView.webview);
+        }
+      }),
       vscode.window.onDidChangeActiveTextEditor((editor) => {
         if (editor) {
           this.refresh(webviewView.webview);
@@ -101,6 +106,17 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
       this.disposables.set(webviewView, disposables);
     }
     return disposables;
+  }
+
+  private async refreshImagesForCurrentState(webview: vscode.Webview) {
+    const shownDiagnostic = this.shownDiagnostics.get(webview);
+    if (shownDiagnostic) {
+      const markdown = shownDiagnostic.contents.map((item) => item.value).join("\n");
+      await this.provider.updateWebviewContent(webview, markdown);
+      return;
+    }
+
+    await this.provider.updateWebviewContent(webview, NO_DIAGNOSTICS_MESSAGE);
   }
 
   async refresh(webview: vscode.Webview) {

@@ -55,38 +55,47 @@ function extractTsErrorText(htmlSource) {
         case "update-content": {
           const $furryError = window.document.querySelector("#furry-error");
           if ($furryError) {
+            const baseImageMap = {
+              "/images/hook.png": "./images/hook.png",
+              "/images/dom.png": "./images/dom.png",
+              "/images/not_found_wink.png": "./images/not_found_wink.png",
+              "/images/react-furry-moji.png": "./images/react-furry-moji.png",
+              "/images/confused.png": "./images/confused.png",
+            };
+            const messageImageMap = {
+              "/images/hook.png": message.hookImageUri,
+              "/images/dom.png": message.domImageUri,
+              "/images/not_found_wink.png": message.notFoundWinkImageUri,
+              "/images/react-furry-moji.png": message.reactFurryMojiImageUri,
+              "/images/confused.png": message.confusedImageUri,
+            };
+            const additionalBaseImageMap = {
+              "/images/onVue.png": "./images/onVue.png",
+              "/images/type.png": "./images/type.png",
+            };
+            const additionalMessageImageMap = {
+              "/images/onVue.png": message.onVueImageUri,
+              "/images/type.png": message.typeImageUri,
+            };
+
             // Get the image path based on message classification
             const imagePath = window.classifyMessage(message.content);
             const additionalPath = window.additionalClassifier(message.content);
 
-            let imageUri = "";
+            let imageUri = baseImageMap["/images/confused.png"];
             let additionalUri;
 
             // Select the appropriate image URI based on the classified path
-            if (imagePath === "/images/hook.png") {
-              imageUri = message.hookImageUri || "./images/hook.png";
-            } else if (imagePath === "/images/dom.png") {
-              imageUri = message.domImageUri || "./images/dom.png";
-            } else if (imagePath === "/images/not_found_wink.png") {
-              imageUri =
-                message.notFoundWinkImageUri || "./images/not_found_wink.png";
-            } else if (imagePath === "/images/react-furry-moji.png") {
-              imageUri =
-                message.reactFurryMojiImageUri ||
-                "./images/react-furry-moji.png";
-            } else {
-              imageUri = message.confusedImageUri || "./images/confused.png";
+            if (baseImageMap[imagePath]) {
+              imageUri = messageImageMap[imagePath] || baseImageMap[imagePath];
             }
 
             // Select the appropriate additional image URI based on the classified path
             if (additionalPath) {
-              if (additionalPath === "/images/onVue.png") {
-                additionalUri = message.onVueImageUri || "./images/onVue.png";
-              } else if (additionalPath === "/images/type.png") {
-                additionalUri = message.typeImageUri || "./images/type.png";
-              } else {
-                additionalUri = additionalPath;
-              }
+              additionalUri =
+                additionalMessageImageMap[additionalPath] ||
+                additionalBaseImageMap[additionalPath] ||
+                additionalPath;
             }
 
             $furryError.innerHTML = `<img src="${imageUri}" alt="Furry error" />`;

@@ -4,6 +4,7 @@ import { HighlighterCore, createHighlighterCore } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import { createMarkdownExit, type MarkdownExit } from "markdown-exit";
 import { PRETTY_TS_ERRORS_SCHEME } from "./textDocumentContentProvider";
+import { ConfigManager } from "../configuration/ConfigManager";
 
 function createMarkdownExitPatched(
   highlight: (code: string) => Promise<string>
@@ -81,6 +82,59 @@ export class MarkdownWebviewProvider {
     });
   }
 
+  private isAbsolutePath(pathValue: string): boolean {
+    return /^(?:[A-Za-z]:[\\/]|\\\\|\/)/.test(pathValue);
+  }
+
+  private getParentUri(uri: vscode.Uri): vscode.Uri {
+    const normalizedPath = uri.path.replace(/\/+$/, "");
+    const lastSlash = normalizedPath.lastIndexOf("/");
+    const parentPath = lastSlash > 0 ? normalizedPath.slice(0, lastSlash) : "/";
+    return uri.with({ path: parentPath });
+  }
+
+  private getConfiguredImageRoots(): vscode.Uri[] {
+    const roots: vscode.Uri[] = [];
+    const images = ConfigManager.images;
+
+    for (const configuredPath of Object.values(images)) {
+      if (!configuredPath) {
+        continue;
+      }
+
+      try {
+        if (/^file:\/\//i.test(configuredPath)) {
+          const uri = vscode.Uri.parse(configuredPath);
+          roots.push(this.getParentUri(uri));
+          continue;
+        }
+        if (this.isAbsolutePath(configuredPath)) {
+          roots.push(this.getParentUri(vscode.Uri.file(configuredPath)));
+        }
+      } catch {
+        // Ignore invalid configured paths and fallback to built-in images.
+      }
+    }
+
+    return roots;
+  }
+
+  private getWebviewLocalResourceRoots(): vscode.Uri[] {
+    const roots = new Map<string, vscode.Uri>();
+    const addRoot = (uri: vscode.Uri) => roots.set(uri.toString(), uri);
+
+    addRoot(this.webviewRootUri);
+    addRoot(this.context.extensionUri);
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      addRoot(folder.uri);
+    }
+    for (const root of this.getConfiguredImageRoots()) {
+      addRoot(root);
+    }
+
+    return [...roots.values()];
+  }
+
   getWebviewOptions(): vscode.WebviewOptions {
     return {
       enableCommandUris: [
@@ -90,7 +144,7 @@ export class MarkdownWebviewProvider {
       ],
       enableScripts: true,
       enableForms: false,
-      localResourceRoots: [this.webviewRootUri],
+      localResourceRoots: this.getWebviewLocalResourceRoots(),
     };
   }
 
@@ -165,36 +219,119 @@ export class MarkdownWebviewProvider {
     );
   }
 
+  private normalizeConfiguredPath(configuredPath: string): string {
+    return configuredPath.replaceAll("\\", "/").replace(/^\.\//, "").trim();
+  }
+
+  private getImagePathCandidates(configuredPath: string): vscode.Uri[] {
+    const normalized = this.normalizeConfiguredPath(configuredPath);
+    if (!normalized) {
+      return [];
+    }
+
+    const candidates = new Map<string, vscode.Uri>();
+    const addCandidate = (uri: vscode.Uri) =>
+      candidates.set(uri.toString(), uri);
+
+    try {
+      if (/^file:\/\//i.test(normalized)) {
+        addCandidate(vscode.Uri.parse(normalized));
+      } else if (this.isAbsolutePath(normalized)) {
+        addCandidate(vscode.Uri.file(normalized));
+      } else {
+        addCandidate(vscode.Uri.joinPath(this.webviewRootUri, normalized));
+        addCandidate(vscode.Uri.joinPath(this.context.extensionUri, normalized));
+        for (const folder of vscode.workspace.workspaceFolders ?? []) {
+          addCandidate(vscode.Uri.joinPath(folder.uri, normalized));
+        }
+      }
+    } catch {
+      // Invalid configured value should not break UI, fallback is handled downstream.
+    }
+
+    return [...candidates.values()];
+  }
+
+  private async uriExists(uri: vscode.Uri): Promise<boolean> {
+    try {
+      await vscode.workspace.fs.stat(uri);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async resolveImageUri(
+    webview: vscode.Webview,
+    configuredPath: string,
+    fallbackFileName: string
+  ): Promise<string> {
+    const fallbackUri = vscode.Uri.joinPath(
+      this.webviewRootUri,
+      "images",
+      fallbackFileName
+    );
+
+    for (const candidate of this.getImagePathCandidates(configuredPath)) {
+      if (await this.uriExists(candidate)) {
+        return webview.asWebviewUri(candidate).toString();
+      }
+    }
+
+    return webview.asWebviewUri(fallbackUri).toString();
+  }
+
   async updateWebviewContent(webview: vscode.Webview, content: string) {
     const html = await this.renderMarkdown(content);
-    // Get the webview URIs for all images
-    const confusedImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'confused.png');
-    const hookImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'hook.png');
-    const domImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'dom.png');
-    const notFoundWinkImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'not_found_wink.png');
-    const onVueImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'onVue.png');
-    const reactFurryMojiImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'react-furry-moji.png');
-    const typeImagePath = vscode.Uri.joinPath(this.webviewRootUri, 'images', 'type.png');
+    const images = ConfigManager.images;
 
-    const confusedImageUri = webview.asWebviewUri(confusedImagePath);
-    const hookImageUri = webview.asWebviewUri(hookImagePath);
-    const domImageUri = webview.asWebviewUri(domImagePath);
-    const notFoundWinkImageUri = webview.asWebviewUri(notFoundWinkImagePath);
-    const onVueImageUri = webview.asWebviewUri(onVueImagePath);
-    const reactFurryMojiImageUri = webview.asWebviewUri(reactFurryMojiImagePath);
-    const typeImageUri = webview.asWebviewUri(typeImagePath);
+    const confusedImageUri = await this.resolveImageUri(
+      webview,
+      images.confused,
+      "confused.png"
+    );
+    const hookImageUri = await this.resolveImageUri(
+      webview,
+      images.hook,
+      "hook.png"
+    );
+    const domImageUri = await this.resolveImageUri(
+      webview,
+      images.dom,
+      "dom.png"
+    );
+    const notFoundWinkImageUri = await this.resolveImageUri(
+      webview,
+      images.notFoundWink,
+      "not_found_wink.png"
+    );
+    const onVueImageUri = await this.resolveImageUri(
+      webview,
+      images.onVue,
+      "onVue.png"
+    );
+    const reactFurryMojiImageUri = await this.resolveImageUri(
+      webview,
+      images.reactFurryMoji,
+      "react-furry-moji.png"
+    );
+    const typeImageUri = await this.resolveImageUri(
+      webview,
+      images.type,
+      "type.png"
+    );
 
     webview.postMessage({
       command: "update-content",
       html,
       content, // Pass original content for classification
-      confusedImageUri: confusedImageUri.toString(),
-      hookImageUri: hookImageUri.toString(),
-      domImageUri: domImageUri.toString(),
-      notFoundWinkImageUri: notFoundWinkImageUri.toString(),
-      onVueImageUri: onVueImageUri.toString(),
-      reactFurryMojiImageUri: reactFurryMojiImageUri.toString(),
-      typeImageUri: typeImageUri.toString()
+      confusedImageUri,
+      hookImageUri,
+      domImageUri,
+      notFoundWinkImageUri,
+      onVueImageUri,
+      reactFurryMojiImageUri,
+      typeImageUri,
     });
   }
 
