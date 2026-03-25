@@ -109,6 +109,10 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async refreshImagesForCurrentState(webview: vscode.Webview) {
+    // localResourceRoots is part of webview options, and must be refreshed after
+    // image path settings change so newly selected local folders are allowed.
+    webview.options = this.provider.getWebviewOptions();
+
     const shownDiagnostic = this.shownDiagnostics.get(webview);
     if (shownDiagnostic) {
       const markdown = shownDiagnostic.contents.map((item) => item.value).join("\n");
