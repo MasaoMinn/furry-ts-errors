@@ -1,56 +1,231 @@
 import type { ExtensionContext } from "vscode";
 import * as vscode from "vscode";
+import { getTheme, getUserLangs, getUserTheme } from "vscode-shiki-bridge";
+import { createHighlighterCore } from "shiki/core";
+import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import { MarkdownWebviewProvider } from "./markdownWebviewProvider";
 import {
   formattedDiagnosticsStore,
   type FormattedDiagnostic,
 } from "../formattedDiagnosticsStore";
 import { has } from "@pretty-ts-errors/utils";
-
-const SUPPORTED_LANGUAGE_IDS = [
-  "typescript",
-  "typescriptreact",
-  "javascript",
-  "javascriptreact",
-  "astro",
-  "svelte",
-  "vue",
-  "mdx",
-  "glimmer-js",
-  "glimmer-ts",
-];
+import {
+  prettifyDiagnosticForSidebar,
+  initHighlighter,
+} from "@pretty-ts-errors/vscode-formatter";
+import { SUPPORTED_LANGUAGE_IDS } from "../supportedLanguageIds";
 
 const NO_DIAGNOSTICS_MESSAGE =
   "Select code with an error to show the prettified diagnostic in this view.";
 
+const SIDEBAR_CACHE_SIZE_MAX = 100;
+const sidebarHtmlCache = new Map<string, string>();
+
+type ViewMode = "cursor" | "locked";
+
+interface DiagnosticItem {
+  html: string;
+  range: vscode.Range;
+  message: string;
+}
+
+interface PinnedError {
+  html: string;
+}
+
+let viewProviderInstance: MarkdownWebviewViewProvider | null = null;
+
+export function getViewProvider() {
+  return viewProviderInstance;
+}
+
+function updateHasErrorsContext() {
+  const editor = vscode.window.activeTextEditor;
+  if (editor && has(SUPPORTED_LANGUAGE_IDS, editor.document.languageId)) {
+    const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
+    const hasErrors = diagnostics.length > 0;
+    vscode.commands.executeCommand(
+      "setContext",
+      "prettyTsErrors.hasErrors",
+      hasErrors
+    );
+  } else {
+    vscode.commands.executeCommand(
+      "setContext",
+      "prettyTsErrors.hasErrors",
+      false
+    );
+  }
+}
+
 export function registerWebviewViewProvider(context: ExtensionContext) {
+  viewProviderInstance = new MarkdownWebviewViewProvider(
+    new MarkdownWebviewProvider(context)
+  );
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      "prettyTsErrors.markdownPreview",
-      new MarkdownWebviewViewProvider(new MarkdownWebviewProvider(context))
-    )
+      "prettyTsErrors.sidePanel",
+      viewProviderInstance,
+      { webviewOptions: { retainContextWhenHidden: true } }
+    ),
+    vscode.languages.onDidChangeDiagnostics(() => updateHasErrorsContext()),
+    vscode.window.onDidChangeActiveTextEditor(() => updateHasErrorsContext())
   );
+  updateHasErrorsContext();
+}
+
+async function diagnosticToItem(
+  formattedDiagnostic: FormattedDiagnostic
+): Promise<DiagnosticItem> {
+  const cacheKey = formattedDiagnostic.lspDiagnostic.message;
+  let html = sidebarHtmlCache.get(cacheKey);
+  if (!html) {
+    html = await prettifyDiagnosticForSidebar(
+      formattedDiagnostic.lspDiagnostic
+    );
+    if (sidebarHtmlCache.size > SIDEBAR_CACHE_SIZE_MAX) {
+      const firstKey = sidebarHtmlCache.keys().next().value!;
+      sidebarHtmlCache.delete(firstKey);
+    }
+    sidebarHtmlCache.set(cacheKey, html);
+  }
+  return {
+    html,
+    range: formattedDiagnostic.range,
+    message: formattedDiagnostic.lspDiagnostic.message,
+  };
 }
 
 // TODO: adding a `MarkdownWebviewView` class would make this provider a lot simpler
 class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
   private disposables = new Map<vscode.WebviewView, vscode.Disposable[]>();
-  private shownDiagnostics = new WeakMap<vscode.Webview, FormattedDiagnostic>();
-  constructor(private readonly provider: MarkdownWebviewProvider) { }
+  private webview: vscode.Webview | null = null;
+  private view: vscode.WebviewView | null = null;
+  private mode: ViewMode = "cursor";
+  private lockedContent: DiagnosticItem | null = null;
+  private pinnedError: PinnedError | null = null;
+  private lastContent: string | null = null;
+  private skipNextSelectionChange = false;
+  private skipNextEditorChange = false;
+  private initialized = false;
+
+  constructor(private readonly provider: MarkdownWebviewProvider) {}
+
+  private async ensureInitialized() {
+    if (!this.initialized) {
+      let theme: string;
+      let themes: Parameters<typeof createHighlighterCore>[0]["themes"];
+      try {
+        [theme, themes] = await getUserTheme();
+      } catch {
+        // User's theme not found in extension registry (e.g. custom themes).
+        // Fall back to a built-in VS Code theme matching the user's color theme kind.
+        const isDark =
+          vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
+          vscode.window.activeColorTheme.kind ===
+            vscode.ColorThemeKind.HighContrast;
+
+        [theme, themes] = await getTheme(
+          isDark ? "Default Dark Modern" : "Default Light Modern"
+        );
+      }
+
+      const langs = await getUserLangs(["type", "ts"]);
+      const highlighter = await createHighlighterCore({
+        themes,
+        langs,
+        engine: createOnigurumaEngine(import("shiki/wasm")),
+      });
+      initHighlighter({
+        codeToHtml: (code: string, options: { lang: string }) =>
+          highlighter.codeToHtml(code, { ...options, theme }),
+      });
+      this.initialized = true;
+    }
+  }
+
+  async lockToDiagnostic(range: vscode.Range, message?: string) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+      const diagnostics =
+        formattedDiagnosticsStore.get(activeEditor.document.uri.fsPath) ?? [];
+      const diagnostic = diagnostics.find(
+        (diagnostic) =>
+          diagnostic.range.isEqual(range) &&
+          (!message || diagnostic.lspDiagnostic.message === message)
+      );
+      if (diagnostic) {
+        await this.ensureInitialized();
+        this.mode = "locked";
+        this.lockedContent = await diagnosticToItem(diagnostic);
+        this.skipNextSelectionChange = true;
+        this.skipNextEditorChange = true;
+        this.lastContent = null;
+        if (this.webview) {
+          await this.refresh(this.webview);
+        }
+      }
+    }
+  }
+
+  async pinDiagnostic(range: vscode.Range, message?: string) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) return;
+
+    const diagnostics =
+      formattedDiagnosticsStore.get(activeEditor.document.uri.fsPath) ?? [];
+    const diagnostic = diagnostics.find(
+      (diagnostic) =>
+        diagnostic.range.isEqual(range) &&
+        (!message || diagnostic.lspDiagnostic.message === message)
+    );
+    if (!diagnostic) return;
+
+    await this.ensureInitialized();
+    const item = await diagnosticToItem(diagnostic);
+
+    // Toggle: if already pinned, unpin instead
+    if (this.pinnedError && this.pinnedError.html === item.html) {
+      this.pinnedError = null;
+    } else {
+      this.pinnedError = { html: item.html };
+    }
+
+    if (this.webview) {
+      await this.refresh(this.webview);
+    }
+  }
+
+  unpinDiagnostic() {
+    this.pinnedError = null;
+    if (this.webview) {
+      void this.refresh(this.webview);
+    }
+  }
 
   async resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext
   ): Promise<void> {
+    this.webview = webviewView.webview;
+    this.view = webviewView;
+
+    const initialContent = await this.getActiveContentHtml();
+    webviewView.webview.html = await this.provider.getWebviewContent(
+      webviewView.webview,
+      initialContent,
+      ["webview-panel"]
+    );
+
     const disposables = this.ensureDisposables(webviewView);
 
     webviewView.webview.options = this.provider.getWebviewOptions();
-
     const onExtensionMessage = this.provider.createOnDidReceiveMessage();
+
     disposables.push(
       webviewView.webview.onDidReceiveMessage((message) => {
         if (message && message.command === "webview-ready") {
-          void this.onWebviewReady(webviewView.webview);
+          void this.refresh(webviewView.webview, true);
         }
         onExtensionMessage(message);
       }),
@@ -60,12 +235,20 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
       ),
       vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration("furry-ts-errors.images")) {
-          void this.refreshImagesForCurrentState(webviewView.webview);
+          webviewView.webview.options = this.provider.getWebviewOptions();
+          void this.refresh(webviewView.webview, true);
         }
       }),
       vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (this.skipNextEditorChange) {
+          this.skipNextEditorChange = false;
+          return;
+        }
         if (editor) {
-          this.refresh(webviewView.webview);
+          if (this.mode === "locked") {
+            this.mode = "cursor";
+          }
+          void this.refresh(webviewView.webview);
         }
       }),
       vscode.window.onDidChangeTextEditorSelection((event) => {
@@ -75,28 +258,31 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
         if (!has(SUPPORTED_LANGUAGE_IDS, document.languageId)) {
           return;
         }
-        this.refresh(webviewView.webview);
+        if (this.skipNextSelectionChange) {
+          this.skipNextSelectionChange = false;
+          return;
+        }
+        if (this.mode === "locked") {
+          this.mode = "cursor";
+        }
+        if (this.mode === "cursor") {
+          void this.refresh(webviewView.webview);
+        }
+      }),
+      webviewView.onDidChangeVisibility(() => {
+        if (webviewView.visible) {
+          void this.refresh(webviewView.webview);
+        }
       })
-    );
-
-    webviewView.webview.html = await this.provider.getWebviewContent(
-      webviewView.webview,
-      NO_DIAGNOSTICS_MESSAGE,
-      ["webview-panel"]
     );
 
     webviewView.onDidDispose(() => {
       const disposables = this.disposables.get(webviewView);
       disposables?.forEach((disposable) => disposable.dispose());
       this.disposables.delete(webviewView);
-      this.shownDiagnostics.delete(webviewView.webview);
+      this.webview = null;
+      this.view = null;
     });
-  }
-
-  /** Runs after the webview has registered its `message` listener so `updateWebviewContent` is not lost. */
-  private async onWebviewReady(webview: vscode.Webview) {
-    await this.provider.updateWebviewContent(webview, NO_DIAGNOSTICS_MESSAGE);
-    await this.refresh(webview);
   }
 
   private ensureDisposables(webviewView: vscode.WebviewView) {
@@ -108,44 +294,89 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
     return disposables;
   }
 
-  private async refreshImagesForCurrentState(webview: vscode.Webview) {
-    // localResourceRoots is part of webview options, and must be refreshed after
-    // image path settings change so newly selected local folders are allowed.
-    webview.options = this.provider.getWebviewOptions();
-
-    const shownDiagnostic = this.shownDiagnostics.get(webview);
-    if (shownDiagnostic) {
-      const markdown = shownDiagnostic.contents.map((item) => item.value).join("\n");
-      await this.provider.updateWebviewContent(webview, markdown);
-      return;
-    }
-
-    await this.provider.updateWebviewContent(webview, NO_DIAGNOSTICS_MESSAGE);
+  private async getActiveContentHtml(): Promise<string> {
+    const items = await this.getActiveDiagnosticItems();
+    if (items.length === 0) return NO_DIAGNOSTICS_MESSAGE;
+    return items.map((item) => item.html).join("<hr>");
   }
 
-  async refresh(webview: vscode.Webview) {
+  private async getActiveDiagnosticItems(): Promise<DiagnosticItem[]> {
+    await this.ensureInitialized();
+    switch (this.mode) {
+      case "cursor":
+        return this.getCursorDiagnosticItems();
+      case "locked":
+        return this.lockedContent ? [this.lockedContent] : [];
+    }
+  }
+
+  private async getCursorDiagnosticItems(): Promise<DiagnosticItem[]> {
     const activeEditor = vscode.window.activeTextEditor;
     const selection = activeEditor?.selection;
-    if (activeEditor && selection) {
-      const uri = activeEditor.document.uri;
-      const diagnostics = formattedDiagnosticsStore.get(uri.fsPath) ?? [];
-      const diagnostic = diagnostics.find((diagnostic) =>
-        diagnostic.range.contains(selection)
+    if (!activeEditor || !selection) return [];
+
+    const diagnostics =
+      formattedDiagnosticsStore.get(activeEditor.document.uri.fsPath) ?? [];
+    const selectedDiagnostics = diagnostics.filter(
+      (diagnostic) => diagnostic.range.intersection(selection) !== undefined
+    );
+    return Promise.all(selectedDiagnostics.map((d) => diagnosticToItem(d)));
+  }
+
+  async refresh(webview: vscode.Webview, force = false) {
+    if (this.view && !this.view.visible) return;
+
+    const sections: string[] = [];
+    const contentChunks: string[] = [];
+
+    // Render pinned error section
+    if (this.pinnedError) {
+      sections.push(
+        `<div class="pinned-section">` +
+          `<div class="pinned-header">` +
+          `<span class="pinned-label">` +
+          `<span class="codicon codicon-pinned"></span>` +
+          ` Pinned error` +
+          `</span>` +
+          `<a class="unpin-button codicon codicon-close" title="Unpin error" href="command:prettyTsErrors.unpinError"></a>` +
+          `</div>` +
+          this.pinnedError.html +
+          `</div>`
       );
-      const shownDiagnostic = this.shownDiagnostics.get(webview);
-      if (diagnostic) {
-        const markdown = diagnostic.contents
-          .map((item) => item.value)
-          .join("\n");
-        await this.provider.updateWebviewContent(webview, markdown);
-        this.shownDiagnostics.set(webview, diagnostic);
-      } else if (shownDiagnostic && !diagnostics.includes(shownDiagnostic)) {
-        await this.provider.updateWebviewContent(
-          webview,
-          NO_DIAGNOSTICS_MESSAGE
-        );
-        this.shownDiagnostics.delete(webview);
+      sections.push(`<hr>`);
+      contentChunks.push("Pinned error");
+    }
+
+    // Render active diagnostic items
+    const items = await this.getActiveDiagnosticItems();
+    if (items.length === 0) {
+      sections.push(NO_DIAGNOSTICS_MESSAGE);
+      contentChunks.push(NO_DIAGNOSTICS_MESSAGE);
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        if (i > 0) sections.push(`<hr>`);
+        const item = items[i]!;
+        contentChunks.push(item.message);
+        if (this.pinnedError && item.html === this.pinnedError.html) {
+          sections.push(
+            `<div class="diagnostic-item pinned-message">` +
+              `<em>This item is pinned on top.</em>` +
+              `</div>`
+          );
+        } else {
+          sections.push(`<div class="diagnostic-item">${item.html}</div>`);
+        }
       }
+    }
+
+    const fullHtml = sections.join("");
+    if (force || fullHtml !== this.lastContent) {
+      await this.provider.updateWebviewContent(
+        webview,
+        fullHtml,
+        contentChunks.join("\n")
+      );
+      this.lastContent = fullHtml;
     }
   }
 }

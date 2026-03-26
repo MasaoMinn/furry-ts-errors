@@ -68,13 +68,14 @@ export function registerSelectImagePath(context: vscode.ExtensionContext) {
           openLabel: "Use image",
           title: `Select image for '${key}'`,
         });
-        if (!selected?.length) {
+        const selectedFile = selected?.[0];
+        if (!selectedFile) {
           return;
         }
 
         const config = vscode.workspace.getConfiguration(CONFIG_NAMESPACE);
         const currentImages = config.get<Record<string, string>>("images") ?? {};
-        const nextImages = { ...currentImages, [key]: selected[0].toString() };
+        const nextImages = { ...currentImages, [key]: selectedFile.toString() };
         await config.update("images", nextImages, vscode.ConfigurationTarget.Global);
 
         vscode.window.showInformationMessage(
