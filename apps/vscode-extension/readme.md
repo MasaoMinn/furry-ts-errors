@@ -14,7 +14,7 @@ See details in Feishu(faster): [Feishu Document](https://kcnhl2uub4k0.feishu.cn/
 
 Install Extension: Search for `Furry TypeScript Errors` in extension market, or [Furry TypeScript Errors - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=tangetsu.furry-ts-errors)
 
-Custom configuration guide: [docs/customization.md](customization.md)
+Custom configuration guide: [customization.md](customization.md)
 
 ## Errors Preview
 

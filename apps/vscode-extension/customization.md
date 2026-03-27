@@ -1,39 +1,39 @@
-# Furry TS Errors 自定义配置指南
+# Furry TS Errors Customization Guide
 
-本文介绍如何在 VS Code 中自定义 Furry TS Errors 的图片与显示行为。
+This guide explains how to customize Furry TS Errors images and display behavior in VS Code.
 
-## 配置入口
+## Configuration Methods
 
-### 方法一：命令面板
+### Method 1: Command Palette
 
-1. 打开命令面板（`Ctrl+Shift+P`）
-2. 输入 `Furry TS Errors: Configure Error Images`
-3. 可进行以下操作：
-   - **Set: ...**：为某个主图片选择本地文件
-   - **...: On/Off**：切换 Vue / Type 附加图片显示
-   - **Reset to default**：将图片路径与显示开关全部恢复为默认值
+1. Open the Command Palette (`Ctrl+Shift+P`)
+2. Type `Furry TS Errors: Configure Error Images`
+3. You can perform the following operations:
+   - **Set: ...**: Select a local file for a specific main image
+   - **...: On/Off**: Toggle Vue / Type additional image display
+   - **Reset to default**: Restore all image paths and display switches to default values
 
-### 方法二：修改 settings.json
+### Method 2: Modify settings.json
 
-1. 打开 VS Code 设置（`Ctrl+,`）
-2. 搜索 `furry-ts-errors`
-3. 你会看到两类配置：
-   - `furry-ts-errors.images`：主图片路径配置
-   - `furry-ts-errors.imageVisibility`：附加图片（Vue / Type）显示开关
+1. Open VS Code Settings (`Ctrl+,`)
+2. Search for `furry-ts-errors`
+3. You'll see two types of configurations:
+   - `furry-ts-errors.images`: Main image path configuration
+   - `furry-ts-errors.imageVisibility`: Additional image (Vue / Type) display switches
 
-## 可配置项说明
+## Configuration Options
 
 ### 1. `furry-ts-errors.images`
 
-用于配置主图片路径，支持以下键：
+Used to configure main image paths, supports the following keys:
 
-- `confused` - 困惑表情
-- `hook` - Hook 相关错误
-- `dom` - DOM 相关错误
-- `notFoundWink` - 未找到错误（眨眼）
-- `reactFurryMoji` - React 相关错误
+- `confused` - Confused expression
+- `hook` - Hook-related errors
+- `dom` - DOM-related errors
+- `notFoundWink` - Not found error (winking)
+- `reactFurryMoji` - React-related errors
 
-**默认配置：**
+**Default Configuration:**
 
 ```json
 {
@@ -47,21 +47,21 @@
 }
 ```
 
-**路径规则：**
+**Path Rules:**
 
-- 支持绝对路径（如 `D:\\pics\\hook.png`）
-- 支持 `file:///` URI
-- 支持相对路径（会尝试相对于扩展目录/工作区目录解析）
-- 建议使用 `png`/`jpg`/`jpeg`/`svg`/`gif`/`webp`（能套进 `<img>` 标签的 src 就行）
+- Supports absolute paths (e.g., `D:\\pics\\hook.png`)
+- Supports `file:///` URI
+- Supports relative paths (will try to resolve relative to extension directory/workspace directory)
+- Recommended formats: `png`/`jpg`/`jpeg`/`svg`/`gif`/`webp` (any format that can be used in `<img>` tag src)
 
 ### 2. `furry-ts-errors.imageVisibility`
 
-用于控制附加图片是否显示：
+Used to control whether additional images are displayed:
 
-- `onVue`：Vue 表情包图片开关
-- `type`：Type 表情包图片开关
+- `onVue`: Vue sticker image switch
+- `type`: Type sticker image switch
 
-**默认配置：**
+**Default Configuration:**
 
 ```json
 {
@@ -72,7 +72,7 @@
 }
 ```
 
-## 完整配置示例
+## Complete Configuration Example
 
 ```json
 {
@@ -90,17 +90,17 @@
 }
 ```
 
-## 常见问题
+## Frequently Asked Questions
 
-### 修改后没有生效
+### Changes not taking effect
 
-- 重新选择报错位置，触发侧栏刷新
-- 检查路径是否可访问、扩展名是否正确
-- 使用 **Reset to default** 回到默认配置后再逐项调整
+- Reselect error location to trigger sidebar refresh
+- Check if the path is accessible and file extension is correct
+- Use **Reset to default** to restore default configuration and then adjust items one by one
 
-### 只想关闭 Vue / Type 的附加图
+### Only want to disable Vue / Type additional images
 
-将以下配置设为 `false`：
+Set the following configuration to `false`:
 
 ```json
 {
@@ -111,8 +111,8 @@
 }
 ```
 
-## 注意事项
+## Important Notes
 
-- 修改配置后可能需要重启 VS Code 或重新打开相关文件才能生效
-- 建议使用相对路径以确保配置在不同环境中的可移植性
-- 如果遇到图片显示问题，请检查文件路径和权限设置
+- After modifying configuration, you may need to restart VS Code or reopen relevant files for changes to take effect
+- Using relative paths is recommended to ensure configuration portability across different environments
+- If you encounter image display issues, check file paths and permission settings
