@@ -1,6 +1,6 @@
 # furry-ts-errors
 
-Showing different furry illusions according to the error type, bringing more fun to the programming.
+Showing different furry illusions according to the error type, bringing more fun to the programming. You can customize **your own illustrations** now!
 
 ![furry-ts-errors](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/icon.png)
 
@@ -50,13 +50,13 @@ Custom configuration guide: [docs/customization.md](apps/vscode-extension/custom
 
 Coming Soon:
 
-* Vue-furry fursona
-* Angular-furry fursona
-* Svelte-furry fursona
-* fursona interacts with the rocket turtle(Node.js), steamed bun(Bun), the dinosaur(Deno)
-* more memes
-* Support for customized images
-* Support for customized classification logic
-* Eslint errors capture
+* [ ] Vue-furry fursona
+* [ ] Angular-furry fursona
+* [ ] Svelte-furry fursona
+* [ ] fursona interacts with the rocket turtle(Node.js), steamed bun(Bun), the dinosaur(Deno)
+* [ ] more memes
+* [X] Support for customized images
+* [ ] Support for customized classification logic
+* [ ] Eslint errors capture
 
 If you have more creative ideas or want to support my development on the ideals above, create a pull request!
