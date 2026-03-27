@@ -3,7 +3,7 @@
   "displayName": "Furry TypeScript Errors",
   "publisher": "tangetsu",
   "description": "Make TypeScript errors prettier and more human-readable in VSCode, with furry illustrations to brighten up your coding experience.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "icon": "icon.png",
   "repository": {
     "type": "git",
@@ -55,8 +55,8 @@
       "properties": {
         "furry-ts-errors.images": {
           "type": "object",
-          "title": "Furry Error Images",
-          "description": "Customize image sources for error illustrations. Supports absolute paths and paths relative to the extension webview folder. You can run 'Furry TS Errors: Select Error Image File' to choose local files with a picker.",
+          "title": "Furry Error Image Paths",
+          "description": "Customize image sources for error illustrations. Supports absolute paths and paths relative to the extension webview folder. Use 'Furry TS Errors: Configure Error Images' to update paths, toggle additional images, or reset to default.",
           "properties": {
             "confused": {
               "type": "string",
@@ -78,19 +78,9 @@
               "description": "Import/module not found error image",
               "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
             },
-            "onVue": {
-              "type": "string",
-              "description": "Vue related additional image",
-              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
-            },
             "reactFurryMoji": {
               "type": "string",
               "description": "No error / prettified diagnostic image",
-              "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
-            },
-            "type": {
-              "type": "string",
-              "description": "Type related additional image",
               "pattern": "^$|^.*\\.(png|jpg|jpeg|svg|gif|webp)$"
             }
           },
@@ -99,9 +89,28 @@
             "hook": "images/hook.png",
             "dom": "images/dom.png",
             "notFoundWink": "images/not_found_wink.png",
-            "onVue": "images/onVue.png",
-            "reactFurryMoji": "images/react-furry-moji.png",
-            "type": "images/type.png"
+            "reactFurryMoji": "images/react-furry-moji.png"
+          }
+        },
+        "furry-ts-errors.imageVisibility": {
+          "type": "object",
+          "title": "Additional Image Visibility",
+          "description": "Control whether additional Vue-related and Type-related images are displayed.",
+          "properties": {
+            "onVue": {
+              "type": "boolean",
+              "description": "Show Vue related additional image",
+              "default": true
+            },
+            "type": {
+              "type": "boolean",
+              "description": "Show Type related additional image",
+              "default": true
+            }
+          },
+          "default": {
+            "onVue": true,
+            "type": true
           }
         }
       }
@@ -153,7 +162,7 @@
       },
       {
         "command": "prettyTsErrors.selectImagePath",
-        "title": "Select Error Image File",
+        "title": "Configure Error Images",
         "category": "Furry TS Errors"
       }
     ],
@@ -183,7 +192,7 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "cp ../../README.md README.md && npm run package",
+    "vscode:prepublish": "node -e \"require('fs').copyFileSync('../../README.md','README.md')\" && npm run package",
     "compile": "node scripts/build",
     "watch": "npm run compile -- --watch",
     "dev": "npm-run-all --parallel _dev:*",

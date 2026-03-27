@@ -234,7 +234,10 @@ class MarkdownWebviewViewProvider implements vscode.WebviewViewProvider {
         this.refresh(webviewView.webview)
       ),
       vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration("furry-ts-errors.images")) {
+        if (
+          event.affectsConfiguration("furry-ts-errors.images") ||
+          event.affectsConfiguration("furry-ts-errors.imageVisibility")
+        ) {
           webviewView.webview.options = this.provider.getWebviewOptions();
           void this.refresh(webviewView.webview, true);
         }

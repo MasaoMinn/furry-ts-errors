@@ -92,10 +92,20 @@ function extractTsErrorText(htmlSource) {
 
             // Select the appropriate additional image URI based on the classified path
             if (additionalPath) {
+              const additionalImageEnabled =
+                (additionalPath === "/images/onVue.png" &&
+                  message.onVueImageEnabled !== false) ||
+                (additionalPath === "/images/type.png" &&
+                  message.typeImageEnabled !== false);
+
+              if (!additionalImageEnabled) {
+                additionalUri = undefined;
+              } else {
               additionalUri =
                 additionalMessageImageMap[additionalPath] ||
                 additionalBaseImageMap[additionalPath] ||
                 additionalPath;
+              }
             }
 
             $furryError.innerHTML = `<img src="${imageUri}" alt="Furry error" />`;

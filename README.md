@@ -2,7 +2,7 @@
 
 Showing different furry illusions according to the error type, bringing more fun to the programming.
 
-![furry-ts-errors](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/icon.png)
+![furry-ts-errors](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/icon.png)
 
 Github Repository: [furry-ts-errors](https://github.com/masaominn/furry-ts-errors "furry-ts-errors")
 
@@ -14,35 +14,37 @@ See details in Feishu(faster): [Feishu Document](https://kcnhl2uub4k0.feishu.cn/
 
 Install Extension: Search for `Furry TypeScript Errors` in extension market, or [Furry TypeScript Errors - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=tangetsu.furry-ts-errors)
 
+Custom configuration guide: [docs/customization.md](apps/vscode-extension/customization.md)
+
 ## Errors Preview
 
 ### no error
 
-![normal](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/Normal.png)
+![normal](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/Normal.png)
 
 ### cannot find
 
-![cannot find](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/CannotFind.png)
+![cannot find](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/CannotFind.png)
 
 ### hooks error
 
-![hooks error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/hooks.png)
+![hooks error](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/hooks.png)
 
 ### other error
 
-![other error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/upper.png)
+![other error](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/upper.png)
 
 ### dom error
 
-![dom error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/dom.png)
+![dom error](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/dom.png)
 
 ### type error
 
-![type error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/Type.png)
+![type error](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/Type.png)
 
 ### vue error
 
-![vue error](https://raw.githubusercontent.com/MasaoMinn/furry-ts-errors/feature/fursona/apps/vscode-extension/assets/vue.png)
+![vue error](https://cdn.jsdelivr.net/gh/MasaoMinn/furry-ts-errors@feature/fursona/apps/vscode-extension/assets/vue.png)
 
 ---
 

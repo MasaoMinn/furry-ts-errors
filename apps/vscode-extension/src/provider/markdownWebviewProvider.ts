@@ -190,6 +190,7 @@ export class MarkdownWebviewProvider {
     content = ""
   ): Promise<void> {
     const images = ConfigManager.images;
+    const additionalImageVisibility = ConfigManager.additionalImageVisibility;
 
     const confusedImageUri = await this.resolveImageUri(
       webview,
@@ -213,7 +214,7 @@ export class MarkdownWebviewProvider {
     );
     const onVueImageUri = await this.resolveImageUri(
       webview,
-      images.onVue,
+      "images/onVue.png",
       "onVue.png"
     );
     const reactFurryMojiImageUri = await this.resolveImageUri(
@@ -223,7 +224,7 @@ export class MarkdownWebviewProvider {
     );
     const typeImageUri = await this.resolveImageUri(
       webview,
-      images.type,
+      "images/type.png",
       "type.png"
     );
 
@@ -238,6 +239,8 @@ export class MarkdownWebviewProvider {
       onVueImageUri,
       reactFurryMojiImageUri,
       typeImageUri,
+      onVueImageEnabled: additionalImageVisibility.onVue,
+      typeImageEnabled: additionalImageVisibility.type,
     });
   }
 
